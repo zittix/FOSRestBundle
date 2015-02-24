@@ -43,16 +43,16 @@ class BodyListener
      *
      * @param DecoderProviderInterface $decoderProvider
      * @param bool                     $throwExceptionOnUnsupportedContentType
+     * @param array                    $disabledRoutes
      * @param ArrayNormalizerInterface $arrayNormalizer
      * @param bool                     $normalizeForms
-     * @param array                    $disabledRoutes
      */
     public function __construct(
         DecoderProviderInterface $decoderProvider,
         $throwExceptionOnUnsupportedContentType = false,
+        $disabledRoutes = array(),
         ArrayNormalizerInterface $arrayNormalizer = null,
-        $normalizeForms = false,
-        $disabledRoutes = array()
+        $normalizeForms = false
     ) {
         $this->decoderProvider = $decoderProvider;
         $this->throwExceptionOnUnsupportedContentType = $throwExceptionOnUnsupportedContentType;
