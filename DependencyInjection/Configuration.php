@@ -187,6 +187,8 @@ class Configuration implements ConfigurationInterface
                                 ->scalarNode('service')->defaultNull()->end()
                                 ->booleanNode('forms')->defaultFalse()->end()
                             ->end()
+                        ->arrayNode('disabled_routes')
+                            ->prototype('scalar')->end()
                         ->end()
                     ->end()
                 ->end()

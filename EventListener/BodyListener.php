@@ -18,6 +18,7 @@ use Symfony\Component\HttpFoundation\ParameterBag;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
 use Symfony\Component\HttpKernel\Exception\UnsupportedMediaTypeHttpException;
+use Symfony\Component\Routing\Router;
 
 /**
  * This listener handles Request body decoding.
@@ -33,23 +34,31 @@ class BodyListener
     private $normalizeForms;
 
     /**
+     * @var array
+     */
+    private $disabledRoutes;
+
+    /**
      * Constructor.
      *
      * @param DecoderProviderInterface $decoderProvider
      * @param bool                     $throwExceptionOnUnsupportedContentType
      * @param ArrayNormalizerInterface $arrayNormalizer
      * @param bool                     $normalizeForms
+     * @param array                    $disabledRoutes
      */
     public function __construct(
         DecoderProviderInterface $decoderProvider,
         $throwExceptionOnUnsupportedContentType = false,
         ArrayNormalizerInterface $arrayNormalizer = null,
-        $normalizeForms = false
+        $normalizeForms = false,
+        $disabledRoutes = array()
     ) {
         $this->decoderProvider = $decoderProvider;
         $this->throwExceptionOnUnsupportedContentType = $throwExceptionOnUnsupportedContentType;
         $this->arrayNormalizer = $arrayNormalizer;
         $this->normalizeForms = $normalizeForms;
+        $this->disabledRoutes = $disabledRoutes;
     }
 
     /**
@@ -85,6 +94,13 @@ class BodyListener
     public function onKernelRequest(GetResponseEvent $event)
     {
         $request = $event->getRequest();
+
+        $route = $request->attributes->get('_route');
+
+        if ($this->isDisabledRoute($route)) {
+            return;
+        }
+        
         $method = $request->getMethod();
         $contentType = $request->headers->get('Content-Type');
         $isFormPostRequest = in_array($contentType, array('multipart/form-data', 'application/x-www-form-urlencoded'), true) && 'POST' === $method;
@@ -138,5 +154,16 @@ class BodyListener
     private function isNotAnEmptyDeleteRequestWithNoSetContentType($method, $content, $contentType)
     {
         return false === ('DELETE' === $method && empty($content) && null === $contentType);
+    }
+
+    /**
+     * Checks if the given route name is excluded in the configuration.
+     *
+     * @param $route
+     * @return bool
+     */
+    private function isDisabledRoute($route)
+    {
+        return in_array($route, $this->disabledRoutes);
     }
 }
